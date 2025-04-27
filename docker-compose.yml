@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8
+    container_name: mysql-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: flashcards
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  backend:
+    build: 
+      context: ./flashcards_backend
+      dockerfile: Dockerfile
+    container_name: flashcards-backend
+    restart: always
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/flashcards
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_JWT_SECRET: 7c6a1e2452a4093a5bafba1f08d55ba9cf457676b2eb43e9c20eb4fc873f1252e821b73ef1651c9ef7ca265fcef4aa00c1fcbb3498ce68b52e691a4386d29f1e80e04ceb00386a8095a2a4b409b8a1a4f3e53d8ea70b3e28de6e19b9590a0ac56ef29eacffc9a4c649aaa065aab32c93c50f1773c8a82a1b5a102afc7e7a87b1111dfe8b2a8620df983cfb59ae9e922abaeb435dffe9f83ef08032f6d94600d9bfd8b081574f69d222df55e3976a95f90499401913ebd3c481a9d5475dcd5f86e0f684617ee4837ead332c0b7fa257f9f2cd273e898bf135f0ec0eea5a1dcf3864ffda576a341546756a361894ddceebbd37ce764df404c522d7d78bf7d70b6e
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+
+  frontend:
+    build: 
+      context: ./flashcards_frontend
+      dockerfile: Dockerfile
+    container_name: flashcards-frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:

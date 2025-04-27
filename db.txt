@@ -1,0 +1,75 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table users {
+  id integer [primary key, increment] // Primary key, auto-increment
+  username varchar [unique, not null]
+  password varchar [not null]
+  /*
+  import jakarta.persistence.*;
+import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+
+@Entity
+@Table(name = "authority")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode
+public class Authority implements GrantedAuthority {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private long id;
+
+    @Column(name = "name")
+    private String name;
+
+    @Override
+    public String getAuthority() {
+        return name;
+    }
+}*/
+  authority_id varchar [not null] //Provided by org.springframework.security.core.GrantedAuthority, no admin users, everyone gets "USER" authority upon registration
+}
+
+Table authority {
+  id integer [primary key, increment]
+  name varchar [unique, not null]
+}
+
+Table decks {
+  id integer [primary key, increment]
+  user_id integer [not null] // Foreign key to users table
+  name varchar [unique, not null] // Name of the deck
+  description text // Optional description of the deck
+  is_learned bool //Describes wether every cards' learn_progress is 3 in given deck (true if every cards' learn_progress is 3)
+  duedate date
+}
+
+Table cards {
+  id integer [primary key, increment]
+  deck_id integer [not null] // Foreign key to decks table
+  question text [not null] // The question on the card
+  answer text [not null] // The answer to the question
+  learn_progress integer  [not null] // 1-3 1-Not learned, 2-Needs revision, 3-Learned
+}
+
+Table study_sessions {
+  id integer [primary key, increment]
+  user_id integer [not null] // Foreign key to users table
+  deck_id integer [not null] // Foreign key to decks table
+  start_time date [default: `CURRENT_TIMESTAMP`] // When the study session started
+  end_time date // When the study session ended, updates every 10 seconds or when card learn_progress changes to the current time
+  correct_answers integer [default: 0] // Correct answers during this session
+  unsure_answers integer [default: 0] // Unsure answers during this session
+  incorrect_answers integer [default: 0] // Incorrect answers during this session
+}
+
+// Relationships
+Ref: decks.user_id > users.id // Many-to-one
+Ref: cards.deck_id > decks.id // Many-to-one
+Ref: study_sessions.user_id > users.id // Many-to-one
+Ref: study_sessions.deck_id > decks.id // Many-to-one
+Ref: users.authority_id > authority.id // Many-to-one
